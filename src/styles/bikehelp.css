@@ -1,0 +1,80 @@
+.bikehelp {
+  background-color: #181211;
+  padding: 3rem 2rem;
+}
+
+.bikehelp-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+.bikehelp-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.bikehelp-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.bikehelp-subtitle {
+  font-size: 0.95rem;
+  color: #b0b0b0;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.bikehelp-button {
+  align-self: flex-start;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.bikehelp-button:hover {
+  background-color: #e0e0e0;
+  transform: translateX(5px);
+}
+
+.bikehelp-image {
+  display: flex;
+  justify-content: center;
+}
+
+.bikehelp-image img {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  object-fit: cover;
+  border-radius: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .bikehelp-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .bikehelp-title {
+    font-size: 1.8rem;
+  }
+
+  .bikehelp-image img {
+    max-width: 300px;
+  }
+}

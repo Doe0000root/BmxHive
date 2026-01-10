@@ -1,0 +1,47 @@
+@font-face {
+  font-family: 'MyFont';
+  src: url('/src/fonts/AnonymousPro-Bold.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'MyFont';
+  src: url('/src/fonts/AnonymousPro-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'MyFont-N';
+  src: url('/src/fonts/NeueMachina-Ultrabold.otf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'MyFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto','MyFont-N', -apple-system, BlinkMacSystemFont,
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+    'Helvetica Neue', sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+html, body, #root {
+  overflow-x: hidden;
+  height: 100%;
+  width: 100%;
+}
+
