@@ -26,7 +26,7 @@ export default function Profile() {
   });
 
   const getAllProfiles = () => {
-  const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+  const profiles = JSON.parse(localStorage.getItem('profiles'));
   return Object.values(profiles)
     .filter(u => u && u.email) // 
     .map(u => ({ ...u })); 

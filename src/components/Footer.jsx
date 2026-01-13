@@ -13,15 +13,15 @@ function Footer() {
         </div>
 
         <div className="footer-nav">
-          <a href="#ride">Ride</a>
-          <a href="#learn">Learn</a>
-          <a href="#connect">Connect</a>
+          <a>Ride</a>
+          <a>Learn</a>
+          <a>Connect</a>
         </div>
 
         <div className="footer-social">
           <i className="fab fa-instagram"></i>
           <div className="instagram-image">
-            <img src={instagram} alt="instagram-logo" className="logo-img" />
+            <img src={instagram} alt="instagram-logo" className="logo-img"  onClick={() => window.open("https://www.instagram.com/")}/>
           </div>
           <span>Contact us</span>
         </div>

@@ -78,6 +78,7 @@
 .instagram-image {
   display: flex;
   justify-content: center;
+  cursor: pointer;
   height: 50px;
   width: 45px;
   transform: translateX(-15px);
