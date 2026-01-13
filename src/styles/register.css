@@ -60,3 +60,14 @@
   margin-top: 1rem;
   font-size: 0.9rem;
 }
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 30px;
+  background: none;
+  border: none;
+  color: #00d4ff;
+  font-size: 1rem;
+  cursor: pointer;
+}

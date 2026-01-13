@@ -13,7 +13,8 @@ function Profile() {
     rating: 0,
     position: 0,
     avatar_url: '',
-    trick_videos: []
+    trick_videos: [],
+    banned: false
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -23,7 +24,6 @@ function Profile() {
     favorite_tricks: ''
   });
 
-  // Compute riding level based on points
   const getRidingLevel = (points) => {
     if (points >= 100) return 'Professional';
     if (points >= 50) return 'Advanced';
@@ -31,16 +31,20 @@ function Profile() {
     return 'Beginner';
   };
 
-  useEffect(() => {
+  // Load profile and user info from localStorage
+  const loadUserProfile = () => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
+
     if (!storedUser) {
       navigate('/login');
       return;
     }
+
     setUser(storedUser);
 
     const storedProfiles = JSON.parse(localStorage.getItem('profiles')) || {};
     const userProfile = storedProfiles[storedUser.email] || {};
+
     setProfile({
       name: userProfile.name || '',
       bio: userProfile.bio || '',
@@ -49,15 +53,32 @@ function Profile() {
       rating: userProfile.rating || 0,
       position: userProfile.position || 0,
       avatar_url: userProfile.avatar_url || '',
-      trick_videos: userProfile.trick_videos || []
+      trick_videos: userProfile.trick_videos || [],
+      banned: userProfile.banned || false
     });
+
     setFormData({
       name: userProfile.name || '',
       bio: userProfile.bio || '',
       favorite_tricks: userProfile.favorite_tricks || ''
     });
+
     setLoading(false);
-  }, []);
+  };
+
+  useEffect(() => {
+    loadUserProfile();
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'profiles' || e.key === 'user') {
+        loadUserProfile();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -84,8 +105,8 @@ function Profile() {
   };
 
   const addPoints = (pointsToAdd) => {
-    const updatedProfile = { 
-      ...profile, 
+    const updatedProfile = {
+      ...profile,
       points: profile.points + pointsToAdd,
       rating: Math.min(5, Math.floor((profile.points + pointsToAdd) / 10))
     };
@@ -123,16 +144,25 @@ function Profile() {
 
   return (
     <div className="profile-container">
+
+      {profile.banned && (
+        <div className="banned-banner">
+           Your account has been banned.
+        </div>
+      )}
+
       <button className="back-button" onClick={() => navigate('/')}>← Back</button>
 
       <div className="profile-card">
         <div className="profile-header">
           <div className="profile-avatar">
             <img src={profile.avatar_url || 'https://i.etsystatic.com/21799038/r/il/3e4e5d/2722919832/il_fullxfull.2722919832_1rth.jpg'} alt="Profile" />
-            <label className="avatar-upload-label">
-              Upload Avatar
-              <input type="file" accept="image/*" onChange={handleAvatarUpload} className="avatar-upload-input" />
-            </label>
+            {!profile.banned && (
+              <label className="avatar-upload-label">
+                Upload Avatar
+                <input type="file" accept="image/*" onChange={handleAvatarUpload} className="avatar-upload-input" />
+              </label>
+            )}
           </div>
           <div className="profile-header-content">
             <h1 className="profile-name">{profile.name || 'User'}</h1>
@@ -144,62 +174,63 @@ function Profile() {
           </div>
         </div>
 
-        <div className="profile-section">
-          {!isEditing ? (
-            <div className="profile-view">
-              <div className="info-block">
-                <h3>Bio</h3>
-                <p>{profile.bio || 'No bio yet'}</p>
-              </div>
-              <div className="info-block">
-                <h3>Favorite Tricks</h3>
-                <p>{profile.favorite_tricks || 'None listed'}</p>
-              </div>
+        {!profile.banned && (
+          <div className="profile-section">
+            {!isEditing ? (
+              <div className="profile-view">
+                <div className="info-block">
+                  <h3>Bio</h3>
+                  <p>{profile.bio || 'No bio yet'}</p>
+                </div>
+                <div className="info-block">
+                  <h3>Favorite Tricks</h3>
+                  <p>{profile.favorite_tricks || 'None listed'}</p>
+                </div>
+                <div className="info-block">
+                  <h3>Trick Videos</h3>
+                  {profile.trick_videos.length === 0 ? (
+                    <p>No tricks uploaded</p>
+                  ) : (
+                    profile.trick_videos.map((v, i) => (
+                      <video key={i} controls width="300" style={{ display: 'block', marginBottom: '1rem' }}>
+                        <source src={v} type="video/mp4" />
+                      </video>
+                    ))
+                  )}
+                  <label className="trick-video-upload-label">
+                    Upload Video
+                    <input type="file" accept="video/*" onChange={handleVideoUpload} className="trick-video-input" />
+                  </label>
+                </div>
 
-              <div className="info-block">
-                <h3>Trick Videos</h3>
-                {profile.trick_videos.length === 0 ? (
-                  <p>No tricks uploaded</p>
-                ) : (
-                  profile.trick_videos.map((v, i) => (
-                    <video key={i} controls width="300" style={{ display: 'block', marginBottom: '1rem' }}>
-                      <source src={v} type="video/mp4" />
-                    </video>
-                  ))
-                )}
-                <label className="trick-video-upload-label">
-                  Upload Video
-                  <input type="file" accept="video/*" onChange={handleVideoUpload} className="trick-video-input" />
-                </label>
-              </div>
+                <div className="info-block">
+                  <button onClick={() => addPoints(10)}>Add 10 Points</button>
+                </div>
 
-              <div className="info-block">
-                <button onClick={() => addPoints(10)}>Add 10 Points</button>
+                <button className="edit-button" onClick={() => setIsEditing(true)}>Edit Profile</button>
               </div>
-
-              <button className="edit-button" onClick={() => setIsEditing(true)}>Edit Profile</button>
-            </div>
-          ) : (
-            <form className="profile-form">
-              <div className="form-group">
-                <label>Name</label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} />
-              </div>
-              <div className="form-group">
-                <label>Bio</label>
-                <textarea name="bio" value={formData.bio} onChange={handleChange} rows="4" />
-              </div>
-              <div className="form-group">
-                <label>Favorite Tricks</label>
-                <input type="text" name="favorite_tricks" value={formData.favorite_tricks} onChange={handleChange} placeholder="e.g., Bunny hop, Wheelie" />
-              </div>
-              <div className="form-actions">
-                <button type="button" className="save-button" onClick={handleSave}>Save</button>
-                <button type="button" className="cancel-button" onClick={() => setIsEditing(false)}>Cancel</button>
-              </div>
-            </form>
-          )}
-        </div>
+            ) : (
+              <form className="profile-form">
+                <div className="form-group">
+                  <label>Name</label>
+                  <input type="text" name="name" value={formData.name} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label>Bio</label>
+                  <textarea name="bio" value={formData.bio} onChange={handleChange} rows="4" />
+                </div>
+                <div className="form-group">
+                  <label>Favorite Tricks</label>
+                  <input type="text" name="favorite_tricks" value={formData.favorite_tricks} onChange={handleChange} />
+                </div>
+                <div className="form-actions">
+                  <button type="button" className="save-button" onClick={handleSave}>Save</button>
+                  <button type="button" className="cancel-button" onClick={() => setIsEditing(false)}>Cancel</button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
 
         <button className="signout-button" onClick={handleSignOut}>Sign Out</button>
       </div>
@@ -208,6 +239,8 @@ function Profile() {
 }
 
 export default Profile;
+
+
 
 
 

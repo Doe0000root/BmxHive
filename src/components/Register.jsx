@@ -18,16 +18,16 @@ export default function Register() {
       return;
     }
 
-    // Get users from localStorage or empty array
+  
     const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
 
-    // Check if email already exists
+ 
     if (storedUsers.find((user) => user.email === email)) {
       setError("Email already registered");
       return;
     }
 
-    // Add new user
+
     const newUser = {
       id: Date.now(),
       email,
@@ -42,6 +42,9 @@ export default function Register() {
 
   return (
     <div className="register-container">
+      <button className="back-button" onClick={() => navigate('/')}>
+        ← Back
+      </button>
       <div className="register-card">
         <h1 className="register-title">Register</h1>
         <form onSubmit={handleRegister} className="register-form">

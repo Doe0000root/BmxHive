@@ -69,7 +69,16 @@
   color: #b0b0b0;
   font-weight: 500;
 }
-
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 30px;
+  background: none;
+  border: none;
+  color: #00d4ff;
+  font-size: 1rem;
+  cursor: pointer;
+}
 .login-register-link {
   color: #00d4ff;
   font-weight: 700;

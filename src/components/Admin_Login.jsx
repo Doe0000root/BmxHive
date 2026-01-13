@@ -13,12 +13,14 @@ export default function Login() {
     setError(null);
 
     if (email === "admin@gmail.com" && password === "admin") {
-      localStorage.setItem("admin", JSON.stringify({ email }));
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ email, role: "admin" })
+      );
       navigate("/admin");
       return;
     }
 
-   
     const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
     const user = storedUsers.find(
       (u) => u.email === email && u.password === password
@@ -34,14 +36,21 @@ export default function Login() {
       return;
     }
 
-    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem(
+      "user",
+      JSON.stringify({ ...user, role: "user" })
+    );
     navigate("/profile");
   };
 
   return (
     <div className="login-container">
+      <button className="back-button" onClick={() => navigate('/')}>
+        ← Back
+      </button>
       <div className="login-card">
         <h1 className="login-title">Admin Login</h1>
+
         <form onSubmit={handleLogin} className="login-form">
           <input
             type="email"
@@ -51,6 +60,7 @@ export default function Login() {
             required
             className="login-input"
           />
+
           <input
             type="password"
             placeholder="Password"
@@ -59,12 +69,19 @@ export default function Login() {
             required
             className="login-input"
           />
-          <button type="submit" className="login-button">Login</button>
+
+          <button type="submit" className="login-button">
+            Login
+          </button>
+
           {error && <p className="login-error">{error}</p>}
         </form>
+
         <p className="login-register-text">
           Don't have an account?{" "}
-          <Link to="/register" className="login-register-link">So make it!</Link>
+          <Link to="/register" className="login-register-link">
+            So make it!
+          </Link>
         </p>
       </div>
     </div>

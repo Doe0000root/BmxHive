@@ -274,10 +274,107 @@
 }
 
 
+.profile-card {
+  background: rgba(42, 42, 42, 0.95);
+  backdrop-filter: blur(6px);
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid #4a4a4a;
+  box-shadow: 0 6px 20px rgba(0, 212, 255, 0.2);
+}
+
+.profile-header {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #00d4ff;
+}
+
+.profile-avatar.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #4a4a4a;
+  color: #fff;
+  font-size: 2rem;
+}
+
+.profile-info h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #00d4ff;
+}
+
+.profile-bio {
+  margin: 0.5rem 0;
+  color: #b0b0b0;
+}
+
+.profile-level {
+  background: #00d4ff;
+  color: #1a1a1a;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+}
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.refresh-users-btn {
+  background: linear-gradient(90deg, #ffffff, #000000);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.refresh-users-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.refresh-users-btn:active {
+  transform: scale(0.95);
+}
+.banned-banner {
+  background-color: #ff4d4f;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  animation: flash 1.5s infinite alternate;
+}
+
 @media (max-width: 768px) {
   .admin-container { padding: 1rem; }
   .admin-header { flex-direction: column; gap: 1rem; align-items: flex-start; }
   .admin-header h1 { font-size: 1.5rem; }
   .content-grid { grid-template-columns: 1fr; }
   .users-section h2 { flex-direction: column; gap: 0.5rem; }
+}
+
+
+@keyframes flash {
+  0% { background-color: #ff4d4f; }
+  100% { background-color: #ff7875; }
 }

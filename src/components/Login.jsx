@@ -33,6 +33,9 @@ export default function Login() {
 
   return (
     <div className="login-container">
+      <button className="back-button" onClick={() => navigate('/')}>
+        ← Back
+      </button>
       <div className="login-card">
         <h1 className="login-title">Login</h1>
         <form onSubmit={handleLogin} className="login-form">
