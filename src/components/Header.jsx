@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from "react-router-dom";
 import logo from'../photos/logo.png'
 import '../styles/header.css'
 
@@ -10,7 +11,7 @@ function Header() {
           <img src={logo} alt="BmxHive logo" className="logo-img" />
         </div>
         <nav className="nav">
-          <a href="#ride" className="nav-link">Profile</a>
+          <Link to="/profile" className="nav-link">Profile</Link>
           <a href="#learn" className="nav-link">Menu</a>
 
         </nav>

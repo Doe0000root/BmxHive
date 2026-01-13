@@ -1,0 +1,81 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "../styles/register.css";
+
+export default function Register() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  const handleRegister = (e) => {
+    e.preventDefault();
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    // Get users from localStorage or empty array
+    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
+
+    // Check if email already exists
+    if (storedUsers.find((user) => user.email === email)) {
+      setError("Email already registered");
+      return;
+    }
+
+    // Add new user
+    const newUser = {
+      id: Date.now(),
+      email,
+      password,
+      banned: false,
+    };
+    storedUsers.push(newUser);
+    localStorage.setItem("users", JSON.stringify(storedUsers));
+
+    navigate("/login");
+  };
+
+  return (
+    <div className="register-container">
+      <div className="register-card">
+        <h1 className="register-title">Register</h1>
+        <form onSubmit={handleRegister} className="register-form">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="register-input"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="register-input"
+          />
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            className="register-input"
+          />
+          <button type="submit" className="register-button">
+            Register
+          </button>
+          {error && <p className="register-error">{error}</p>}
+        </form>
+      </div>
+    </div>
+  );
+}
+
