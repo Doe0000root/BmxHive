@@ -13,36 +13,56 @@ export default function Register() {
     e.preventDefault();
     setError(null);
 
+    
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
     }
 
-  
+    
     const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
 
- 
+  
     if (storedUsers.find((user) => user.email === email)) {
       setError("Email already registered");
       return;
     }
 
-
+   
     const newUser = {
       id: Date.now(),
       email,
       password,
       banned: false,
+      role: "user", 
     };
     storedUsers.push(newUser);
     localStorage.setItem("users", JSON.stringify(storedUsers));
 
+    
+    const storedProfiles = JSON.parse(localStorage.getItem("profiles")) || {};
+    storedProfiles[email] = {
+      name: "",
+      bio: "",
+      favorite_tricks: "",
+      points: 0,
+      rating: 0,
+      position: 0,
+      avatar_url: "",
+      trick_videos: [],
+      banned: false,
+      email: email,
+      role: "user"
+    };
+    localStorage.setItem("profiles", JSON.stringify(storedProfiles));
+
+   
     navigate("/login");
   };
 
   return (
     <div className="register-container">
-      <button className="back-button" onClick={() => navigate('/')}>
+      <button className="back-button" onClick={() => navigate("/")}>
         ← Back
       </button>
       <div className="register-card">

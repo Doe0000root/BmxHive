@@ -4,6 +4,7 @@ import '../styles/profile.css';
 
 function Profile() {
   const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState({
     name: '',
@@ -14,7 +15,9 @@ function Profile() {
     position: 0,
     avatar_url: '',
     trick_videos: [],
-    banned: false
+    banned: false,
+    email: '',
+    role: 'user'
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -31,40 +34,43 @@ function Profile() {
     return 'Beginner';
   };
 
-  // Load profile and user info from localStorage
   const loadUserProfile = () => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
-
     if (!storedUser) {
       navigate('/login');
       return;
     }
 
-    setUser(storedUser);
-
     const storedProfiles = JSON.parse(localStorage.getItem('profiles')) || {};
-    const userProfile = storedProfiles[storedUser.email] || {};
+    const userProfile = storedProfiles[storedUser.email];
 
-    setProfile({
-      name: userProfile.name || '',
-      bio: userProfile.bio || '',
-      favorite_tricks: userProfile.favorite_tricks || '',
-      points: userProfile.points || 0,
-      rating: userProfile.rating || 0,
-      position: userProfile.position || 0,
-      avatar_url: userProfile.avatar_url || '',
-      trick_videos: userProfile.trick_videos || [],
-      banned: userProfile.banned || false
-    });
+    if (!userProfile) {
+      storedProfiles[storedUser.email] = {
+        name: '',
+        bio: '',
+        favorite_tricks: '',
+        points: 0,
+        rating: 0,
+        position: 0,
+        avatar_url: '',
+        trick_videos: [],
+        banned: false,
+        email: storedUser.email,
+        role: storedUser.role || 'user'
+      };
+      localStorage.setItem('profiles', JSON.stringify(storedProfiles));
+    }
 
+    setProfile(storedProfiles[storedUser.email]);
     setFormData({
-      name: userProfile.name || '',
-      bio: userProfile.bio || '',
-      favorite_tricks: userProfile.favorite_tricks || ''
+      name: storedProfiles[storedUser.email].name,
+      bio: storedProfiles[storedUser.email].bio,
+      favorite_tricks: storedProfiles[storedUser.email].favorite_tricks
     });
-
+    setUser(storedUser);
     setLoading(false);
   };
+
 
   useEffect(() => {
     loadUserProfile();
@@ -76,7 +82,6 @@ function Profile() {
     };
 
     window.addEventListener('storage', handleStorageChange);
-
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [navigate]);
 
@@ -85,13 +90,18 @@ function Profile() {
   };
 
   const saveProfile = (updatedProfile) => {
+    if (!updatedProfile.email) {
+      console.error('Cannot save profile without email!');
+      return;
+    }
+
     const storedProfiles = JSON.parse(localStorage.getItem('profiles')) || {};
-    storedProfiles[user.email] = updatedProfile;
+    storedProfiles[updatedProfile.email] = updatedProfile;
 
     const allProfiles = Object.values(storedProfiles).sort((a, b) => b.points - a.points);
     allProfiles.forEach((p, index) => {
       p.position = index + 1;
-      storedProfiles[p.email || p.name] = p;
+      storedProfiles[p.email] = p;
     });
 
     localStorage.setItem('profiles', JSON.stringify(storedProfiles));
@@ -144,13 +154,7 @@ function Profile() {
 
   return (
     <div className="profile-container">
-
-      {profile.banned && (
-        <div className="banned-banner">
-           Your account has been banned.
-        </div>
-      )}
-
+      {profile.banned && <div className="banned-banner">Your account has been banned.</div>}
       <button className="back-button" onClick={() => navigate('/')}>← Back</button>
 
       <div className="profile-card">
@@ -166,7 +170,7 @@ function Profile() {
           </div>
           <div className="profile-header-content">
             <h1 className="profile-name">{profile.name || 'User'}</h1>
-            <p className="profile-email">{user.email}</p>
+            <p className='profile-name'>{profile.email}</p>
             <span className="profile-level">{getRidingLevel(profile.points)}</span>
             <p className="profile-points">Points: {profile.points}</p>
             <p className="profile-rating">Rating: {profile.rating} / 5</p>
