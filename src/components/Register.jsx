@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../styles/register.css";
 
 export default function Register() {
@@ -9,55 +10,34 @@ export default function Register() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
+  const API_URL = "http://localhost:5000/api";
+
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError(null);
 
-    
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
     }
 
-    
-    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
+    try {
+      const res = await axios.post(`${API_URL}/auth/register`, {
+        email,
+        password,
+      });
 
-  
-    if (storedUsers.find((user) => user.email === email)) {
-      setError("Email already registered");
-      return;
+      const { token, user } = res.data;
+
+      localStorage.setItem("token", token);
+      navigate("/profile");
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Registration failed. Please try again.");
+      }
     }
-
-   
-    const newUser = {
-      id: Date.now(),
-      email,
-      password,
-      banned: false,
-      role: "user", 
-    };
-    storedUsers.push(newUser);
-    localStorage.setItem("users", JSON.stringify(storedUsers));
-
-    
-    const storedProfiles = JSON.parse(localStorage.getItem("profiles")) || {};
-    storedProfiles[email] = {
-      name: "",
-      bio: "",
-      favorite_tricks: "",
-      points: 0,
-      rating: 0,
-      position: 0,
-      avatar_url: "",
-      trick_videos: [],
-      banned: false,
-      email: email,
-      role: "user"
-    };
-    localStorage.setItem("profiles", JSON.stringify(storedProfiles));
-
-   
-    navigate("/login");
   };
 
   return (
@@ -101,4 +81,5 @@ export default function Register() {
     </div>
   );
 }
+
 

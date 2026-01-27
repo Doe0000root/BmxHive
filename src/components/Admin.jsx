@@ -1,360 +1,337 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../styles/admin.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import "../styles/admin.css";
+import avatar from '../photos/admin_avatar.jpeg'
 
-export default function Profile() {
+const API_URL = "http://localhost:5000/api";
+
+export default function AdminDashboard() {
   const navigate = useNavigate();
-
+  const token = localStorage.getItem("admin_token");
+  const [posts, setPosts] = useState([]);
+  const [postsLoading, setPostsLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [users, setUsers] = useState([]);
-  const [content, setContent] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showContentForm, setShowContentForm] = useState(false);
-
   const [profileData, setProfileData] = useState({
-    name: '',
-    bio: '',
-    avatar: ''
+    name: "",
+    bio: "",
+    avatar: "",
   });
-
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    content: '',
-    type: 'guide'
-  });
-
-  const getAllProfiles = () => {
-    const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-    if (!profiles || typeof profiles !== 'object') return [];
-    return Object.values(profiles)
-      .filter(u => u && u.email)
-      .map(u => ({ ...u }));
-  };
-
-
-
-  const refreshUsers = () => {
-    setUsers(getAllProfiles());
-  };
-
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user')) || null;
-    if (!storedUser) {
-      navigate('/login');
-      return;
+    try {
+      const rawUser = localStorage.getItem("admin_user");
+
+      if (!token || !rawUser || rawUser === "undefined") {
+        navigate("/adminlogin");
+        return;
+      }
+
+      const parsed = JSON.parse(rawUser);
+      const isAdmin =
+        parsed.role === "admin" ||
+        parsed.is_admin === true ||
+        parsed.is_admin === 1;
+
+      if (!isAdmin) {
+        navigate("/adminlogin");
+        return;
+      }
+
+      setUser(parsed);
+      setProfileData({
+        name: parsed.name || "",
+        bio: parsed.bio || "",
+        avatar: parsed.avatar_url || "",
+      });
+
+      fetchUsers();
+      fetchPosts();
+      setLoading(false);
+    } catch {
+      navigate("/adminlogin");
     }
-
-    setUser(storedUser);
-    setIsAdmin(storedUser.role === 'admin');
-
-    setUsers(getAllProfiles());
-
-    const localContent = JSON.parse(localStorage.getItem('content') || '[]');
-    setContent(localContent);
-
-    setProfileData({
-      name: storedUser.name || '',
-      bio: storedUser.bio || '',
-      avatar: storedUser.avatar || ''
-    });
-
-    setLoading(false);
-  }, [navigate]);
-
-  useEffect(() => {
-    if (!user) return;
-
-    const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-
-    profiles[user.email] = {
-      ...profiles[user.email],
-      ...profileData,
-      email: user.email,
-      role: user.role,
-      points: user.points || 0,
-      banned: profiles[user.email]?.banned || false
-    };
-
-    localStorage.setItem('profiles', JSON.stringify(profiles));
-
-    setUsers(getAllProfiles());
-  }, [profileData, user]);
-
-  useEffect(() => {
-    localStorage.setItem('content', JSON.stringify(content));
-  }, [content]);
-
-  const handleProfileChange = (e) => {
-    setProfileData({ ...profileData, [e.target.name]: e.target.value });
+  }, []);
+  const fetchPosts = async () => {
+    try {
+      setPostsLoading(true);
+      const res = await axios.get(`${API_URL}/admin/posts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setPosts(res.data);
+    } catch (err) {
+      console.error("Failed to fetch posts", err);
+    } finally {
+      setPostsLoading(false);
+    }
   };
 
-  const handleAvatarChange = (e) => {
+
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/admin/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUsers(res.data);
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        navigate("/adminlogin");
+      }
+    }
+  };
+  const deletePost = async (postId) => {
+    if (!window.confirm("Delete this post permanently?")) return;
+
+    setPosts(prev => prev.filter(p => p.id !== postId));
+
+    try {
+      await axios.delete(`${API_URL}/admin/posts/${postId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (err) {
+      alert("Failed to delete post");
+      fetchPosts(); 
+    }
+  };
+
+
+  const toggleBanUser = async (userId, banned) => {
+    if (userId === user.id) return;
+    setUsers(prev =>
+      prev.map(u =>
+        u.id === userId ? { ...u, banned: !banned } : u
+      )
+    );
+
+    try {
+      await axios.put(
+        `${API_URL}/admin/users/${userId}/ban`,
+        { banned: !banned },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch {
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === userId ? { ...u, banned } : u
+        )
+      );
+    }
+  };
+
+  const handleProfileChange = e => {
+    const { name, value } = e.target;
+    setProfileData(p => ({ ...p, [name]: value }));
+  };
+
+  const handleAvatarChange = e => {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setProfileData({ ...profileData, avatar: reader.result });
-    };
+    reader.onloadend = () =>
+      setProfileData(p => ({ ...p, avatar: reader.result }));
     reader.readAsDataURL(file);
   };
 
-  const getRiderLevel = (points = 0, role) => {
-    if (role === 'admin') return 'Admin Rider';
-    if (points >= 100) return 'Professional';
-    if (points >= 50) return 'Advanced';
-    if (points >= 20) return 'Intermediate';
-    return 'Beginner';
-  };
-
-  const handleContentChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handlePublishContent = (e) => {
-    e.preventDefault();
-    const newContent = {
-      id: Date.now(),
-      ...formData,
-      created_by: user.email,
-      created_at: new Date().toISOString()
-    };
-
-    setContent([newContent, ...content]);
-    setFormData({ title: '', description: '', content: '', type: 'guide' });
-    setShowContentForm(false);
-  };
-
-  const handleDeleteContent = (id) => {
-    setContent(content.filter((item) => item.id !== id));
-  };
-
- const toggleBanUser = (email) => {
-  const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-
-    if (!profiles[email]) {
-      console.warn(`No profile found for ${email}`);
-      return;
-    }
-
-    profiles[email].banned = !profiles[email].banned;
-    localStorage.setItem('profiles', JSON.stringify(profiles));
-
-    const currentUser = JSON.parse(localStorage.getItem('user'));
-    if (currentUser?.email === email) {
-      localStorage.setItem(
-        'user',
-        JSON.stringify({ ...currentUser, banned: profiles[email].banned })
+  const saveProfile = async () => {
+    try {
+      const res = await axios.put(
+        `${API_URL}/admin/users/profile`,
+        profileData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+
+      localStorage.setItem("admin_user", JSON.stringify(res.data.user));
+      setUser(res.data.user);
+      alert("Profile updated");
+    } catch {
+      alert("Profile update failed");
     }
+  };
 
-  refreshUsers();
-};
-
+  const getRiderLevel = (points = 0) => {
+    if (points >= 100) return "Professional";
+    if (points >= 50) return "Advanced";
+    if (points >= 20) return "Intermediate";
+    return "Beginner";
+  };
 
   if (loading) return <div className="admin-loading">Loading...</div>;
 
   return (
     <div className="admin-container">
-      <button className="back-button" onClick={() => navigate('/')}>
+      <button className="back-button" onClick={() => navigate("/")}>
         ← Back
       </button>
+
       <div className="profile-card">
         <div className="profile-header">
-          <div className="profile-avatar-wrapper">
+          <div onClick={() => document.getElementById("avatarInput").click()}>
             {profileData.avatar ? (
-              <img
-                src={profileData.avatar}
-                alt="avatar"
-                className="profile-avatar"
-                onClick={() => document.getElementById('avatarInput').click()}
-              />
+              <div className="profile-avatar">
+                <img src={profileData.avatar} alt="avatar" />
+              </div>
             ) : (
-              <div
-                className="profile-avatar placeholder"
-                onClick={() => document.getElementById('avatarInput').click()}
-              >
-                {profileData.name ? profileData.name.charAt(0) : '?'}
+              <div className="profile-avatar placeholder">
+                <img
+                  src={profileData.avatar || avatar}
+                  alt="avatar"
+                />
               </div>
             )}
-            <input
-              id="avatarInput"
-              type="file"
-              style={{ display: 'none' }}
-              onChange={handleAvatarChange}
-            />
           </div>
 
+          <input
+            id="avatarInput"
+            type="file"
+            hidden
+            onChange={handleAvatarChange}
+          />
+
           <div className="profile-info">
-            <h2>{profileData.name || 'Admin'}</h2>
+            <h2>{profileData.name || "Admin"}</h2>
             <p className="profile-bio">
-              {profileData.bio || 'Write something about yourself...'}
+              {profileData.bio || "Administrator account"}
             </p>
+            <span className="admin-level">ADMIN</span>
             <span className="profile-level">
-              {getRiderLevel(user.points, user.role)}
+              {getRiderLevel(user.points)}
             </span>
           </div>
         </div>
 
-        <div className="profile-form">
+        <div className="admin-form-card">
           <div className="form-group">
-            <label>Name</label>
+            <label>Nickname</label>
             <input
               name="name"
               value={profileData.name}
               onChange={handleProfileChange}
             />
           </div>
+
           <div className="form-group">
             <label>Bio</label>
             <textarea
               name="bio"
+              rows="3"
               value={profileData.bio}
               onChange={handleProfileChange}
-              rows="3"
             />
           </div>
+
+          <button className="submit-button" onClick={saveProfile}>
+            Save Profile
+          </button>
         </div>
       </div>
-
-      <div className="admin-header">
-        <h2>My Content</h2>
-        <button
-          className="add-button"
-          onClick={() => setShowContentForm(!showContentForm)}
-        >
-          {showContentForm ? '✕ Cancel' : '+ New Content'}
-        </button>
-      </div>
-
-      {showContentForm && (
-        <div className="admin-form-card">
-          <form onSubmit={handlePublishContent}>
-            <div className="form-group">
-              <label>Title</label>
-              <input
-                name="title"
-                value={formData.title}
-                onChange={handleContentChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Description</label>
-              <input
-                name="description"
-                value={formData.description}
-                onChange={handleContentChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Content</label>
-              <textarea
-                name="content"
-                value={formData.content}
-                onChange={handleContentChange}
-                rows="5"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Type</label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleContentChange}
-              >
-                <option value="guide">Guide</option>
-                <option value="news">News</option>
-                <option value="tutorial">Tutorial</option>
-              </select>
-            </div>
-            <button type="submit" className="submit-button">
-              Publish
-            </button>
-          </form>
+      <div className="users-section">
+        <div className="users-header">
+          <h2>
+            Posts <span className="users-count">{posts.length}</span>
+          </h2>
+          <button className="refresh-users-btn" onClick={fetchPosts}>
+            Refresh Posts
+          </button>
         </div>
-      )}
 
-      <div className="content-list">
-        {content.length === 0 ? (
-          <p className="no-content">No content published yet</p>
+        {postsLoading ? (
+          <div className="admin-loading">Loading posts...</div>
+        ) : posts.length === 0 ? (
+          <div className="no-content">No posts found</div>
         ) : (
-          <div className="content-grid">
-            {content.map((item) => (
-              <div key={item.id} className="content-card">
-                <div className="content-header">
-                  <h3>{item.title}</h3>
-                  <span className="content-type">{item.type}</span>
-                </div>
-                <p className="content-description">{item.description}</p>
-                <p className="content-preview">{item.content.substring(0, 100)}...</p>
-                <div className="content-footer">
-                  <small className="content-date">
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </small>
-                  <button
-                    className="delete-button"
-                    onClick={() => handleDeleteContent(item.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <table className="users-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Level</th>
+                <th>Date</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {posts.map(p => (
+                <tr key={p.id}>
+                  <td>{p.title}</td>
+                  <td>{p.author_name}</td>
+                  <td>{p.level}</td>
+                  <td>{new Date(p.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <button
+                      className="ban"
+                      onClick={() => deletePost(p.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
+      <div className="users-section">
+        <div className="users-header">
+          <h2>
+            Users <span className="users-count">{users.length}</span>
+          </h2>
+          <button className="refresh-users-btn" onClick={fetchUsers}>
+            Refresh Users
+          </button>
+        </div>
 
-   {isAdmin && (
-        <div className="users-section">
-          <div className="users-header">
-            <h2>Users ({users.length})</h2>
-            <button className="refresh-users-btn" onClick={refreshUsers}>
-              Refresh Users
-            </button>
-          </div>
-
-          <table className="users-table">
+        <table className="users-table">
           <thead>
             <tr>
               <th>Nickname</th>
               <th>Bio</th>
-              <th>Rider Level</th>
+              <th>Level</th>
               <th>Status</th>
-              <th>Action</th>
+              <th />
             </tr>
           </thead>
           <tbody>
-          {users.map(u => (
-            <tr key={u.email}>
-              <td>{u.name || u.email || 'N/A'}</td>
-              <td>{u.bio || 'No bio'}</td>
-              <td>{getRiderLevel(u.points, u.role)}</td>
-              <td>{u.banned ? 'Banned' : 'Active'}</td>
-              <td>
-                <button className={u.banned ? 'unban' : 'ban'} onClick={() => toggleBanUser(u.email)}>
-                  {u.banned ? 'Unban' : 'Ban'}
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
+            {users.map(u => (
+              <tr key={u.id} className={u.banned ? "banned" : ""}>
+                <td>{u.name || u.email}</td>
+                <td>{u.bio || "No bio"}</td>
+                <td>{getRiderLevel(u.points)}</td>
+                <td>{u.banned ? "Banned" : "Active"}</td>
+                <td>
+                  <button
+                    disabled={u.id === user.id}
+                    className={u.banned ? "unban" : "ban"}
+                    onClick={() => toggleBanUser(u.id, u.banned)}
+                  >
+                    {u.id === user.id
+                      ? "You"
+                      : u.banned
+                      ? "Unban"
+                      : "Ban"}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-

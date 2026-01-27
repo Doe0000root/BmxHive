@@ -1,39 +1,51 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useContext } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import axios from "axios";
 import "../styles/login.css";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation(); 
 
-  const handleLogin = (e) => {
+  const { login } = useContext(AuthContext);
+
+  const API_URL = "http://localhost:5000/api";
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
 
-    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
-    const user = storedUsers.find(
-      (u) => u.email === email && u.password === password
-    );
+    try {
+      const res = await axios.post(`${API_URL}/auth/login`, { email, password });
+      const { token, user } = res.data;
 
-    if (!user) {
-      setError("Invalid email or password");
-      return;
+      if (user.banned) {
+        setError("This account is banned");
+        return;
+      }
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      login(token, user);
+
+      const from = location.state?.from?.pathname || "/forum";
+      navigate(from, { replace: true });
+    } catch (err) {
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Login failed. Please try again.");
+      }
     }
-
-    if (user.banned) {
-      setError("This account is banned");
-      return;
-    }
-
-    localStorage.setItem("user", JSON.stringify(user));
-    navigate("/profile");
   };
 
   return (
     <div className="login-container">
-      <button className="back-button" onClick={() => navigate('/')}>
+      <button className="back-button" onClick={() => navigate("/")}>
         ← Back
       </button>
       <div className="login-card">
@@ -55,17 +67,24 @@ export default function Login() {
             required
             className="login-input"
           />
-          <button type="submit" className="login-button">Login</button>
+          <button type="submit" className="login-button">
+            Login
+          </button>
           {error && <p className="login-error">{error}</p>}
         </form>
         <p className="login-register-text">
           Don't have an account?{" "}
-          <Link to="/register" className="login-register-link">So make it!</Link>
+          <Link to="/register" className="login-register-link">
+            Register here!
+          </Link>
         </p>
       </div>
     </div>
   );
 }
+
+
+
 
 
 
