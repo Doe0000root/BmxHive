@@ -19,13 +19,18 @@ router.get("/posts", authenticate, requireAdmin, async (req, res) => {
         t.level,
         t.created_at,
         u.id AS author_id,
-        COALESCE(p.name, u.email) AS author_name
+        COALESCE(p.name, u.email) AS author_name,
+        EXISTS (
+          SELECT 1
+          FROM tickets tk
+          WHERE tk.trick_id = t.id
+            AND tk.status = 'open'
+        ) AS has_ticket
       FROM tricks t
       JOIN users u ON u.id = t.user_id
       LEFT JOIN profiles p ON p.user_id = u.id
       ORDER BY t.created_at DESC
     `);
-
     res.json(posts);
   } catch (err) {
     console.error("Admin fetch posts error:", err);

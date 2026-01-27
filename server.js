@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.js";
 import profileRoutes from "./routes/profile.js";
 import adminRoutes from "./routes/admin.js";
 import tricksRouter from "./routes/trick.js";
+import ticketsRouter from "./routes/tickets.js"
 import { initDB } from "./db.js";
 
 dotenv.config();
@@ -22,6 +23,7 @@ app.use(fileUpload());
 
 app.use("/uploads", express.static("uploads")); 
 app.use("/api/tricks", tricksRouter);
+app.use("/api/tickets", ticketsRouter);
 app.use("/api/auth", authRoutes); 
 app.use("/api/profile", profileRoutes); 
 app.use("/api/admin", adminRoutes); 

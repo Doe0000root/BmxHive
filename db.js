@@ -90,10 +90,30 @@ export async function initDB() {
       video_url TEXT,
       level TEXT DEFAULT 'beginner',
       hashtags TEXT,
+      likes INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
+
+  await db.exec(`
+  CREATE TABLE IF NOT EXISTS trick_likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trick_id INTEGER,
+    user_id INTEGER,
+    UNIQUE(trick_id, user_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS tickets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trick_id INTEGER,
+    reporter_id INTEGER,
+    reason TEXT,
+    status TEXT DEFAULT 'open',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS admin_content (

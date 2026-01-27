@@ -27,6 +27,18 @@ function Forum() {
     hashtags: "",
   });
 
+
+  const getRank = (points = 0) => {
+    if (points >= 100) return "Professional";
+    if (points >= 50) return "Advanced";
+    if (points >= 20) return "Intermediate";
+    return "Beginner";
+  };
+
+  const getRankLabel = (rank) => {
+    return rank.charAt(0).toUpperCase() + rank.slice(1);
+  };
+
   const fetchTricks = async () => {
     setLoading(true);
     try {
@@ -69,7 +81,7 @@ function Forum() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setTricks([res.data, ...tricks]);
+      setTricks(prev => [res.data, ...prev]);
       setNewTrick({
         title: "",
         description: "",
@@ -82,6 +94,42 @@ function Forum() {
       console.error("Submit trick error:", err);
     }
   };
+
+  const reportPost = async (trickId) => {
+    const reason = prompt("Why are you reporting this post?");
+    if (!reason) return;
+
+    try {
+      await axios.post(
+        `${API_URL}/tickets`,
+        { trick_id: trickId, reason },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert("Ticket submitted ✔");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+  const likeTrick = async (id) => {
+    if (!token || banned) return;
+
+    try {
+      const res = await axios.post(
+        `${API_URL}/tricks/${id}/like`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setTricks(tricks.map(t => (t.id === id ? res.data : t)));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
 
   const normalizeHashtags = (hashtags) => {
     if (!hashtags) return [];
@@ -224,47 +272,75 @@ function Forum() {
           </div>
         )}
 
-        <div className="feed-posts">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            filteredTricks.map((trick) => (
-              <div className="post" key={trick.id}>
-                <img
-                  className="post-avatar"
-                  src={trick.author_avatar}
-                  alt=""
-                />
-                <div className="post-content">
-                  <div className="post-header">
-                    <span className="post-author">
-                      {trick.author_name}
+       <div className="feed-posts">
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          filteredTricks.map((trick) => (
+            <div className="post" key={trick.id}>
+              <img
+                className="post-avatar"
+                src={
+                  trick.author_avatar ||
+                  "https://i.etsystatic.com/21799038/r/il/3e4e5d/2722919832/il_fullxfull.2722919832_1rth.jpg"
+                }
+                alt=""
+              />
+              <div className="post-content">
+                <div className="post-header">
+                  <span className="post-author">
+                    {trick.author_name}
+                    <span className={`rank-badge ${getRank(trick.author_points)}`}>
+                      {getRankLabel(getRank(trick.author_points))}
                     </span>
-                    <span className="level-tag">{trick.level}</span>
-                  </div>
-                  <div className="post-title">{trick.title}</div>
-                  <div className="post-text">{trick.description}</div>
+                  </span>
+                  <span className="level-tag">{trick.level}</span>
+                </div>
 
-                  {trick.video_url && (
-                    <video controls className="post-video">
-                      <source src={trick.video_url} />
-                    </video>
+                <div className="post-title">{trick.title}</div>
+                <div className="post-text">{trick.description}</div>
+
+                {trick.video_url && (
+                  <video controls className="post-video">
+                    <source src={trick.video_url} />
+                  </video>
+                )}
+
+                <div className="post-hashtags">
+                  {normalizeHashtags(trick.hashtags).map((h, i) => (
+                    <span key={i} className="hashtag">
+                      #{h}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="post-actions">
+                  <button
+                    className={`like-btn ${
+                      trick.liked_by?.includes(user?.id) ? "liked" : ""
+                    }`}
+                    disabled={!user || banned}
+                    onClick={() => likeTrick(trick.id)}
+                  >
+                    ❤️ {trick.likes || 0}
+                  </button>
+
+                  {user && !banned && user.id !== trick.author_id && (
+                    <button
+                      className="report-btn"
+                      onClick={() => reportPost(trick.id)}
+                      title="Report post"
+                    >
+                      🚩
+                    </button>
                   )}
-
-                  <div className="post-hashtags">
-                    {normalizeHashtags(trick.hashtags).map((h, i) => (
-                      <span key={i} className="hashtag">
-                        #{h}
-                      </span>
-                    ))}
-                  </div>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            </div>
+          ))
+        )}
+      </div>
       </main>
-
       <aside className="right-sidebar">
         <h2>Trending</h2>
         <ul>

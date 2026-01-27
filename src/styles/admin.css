@@ -179,6 +179,12 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
 }
 
+.ticketed-post {
+  position: relative;
+  animation: pulseRed 1.5s infinite;
+  box-shadow: 0 0 0 rgba(255, 0, 0, 0.7);
+}
+
 .users-header {
   display: flex;
   align-items: center;
@@ -276,6 +282,18 @@
   color: #888;
 }
 
+
+@keyframes pulseRed {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.4);
+  }
+}
 
 @media (max-width: 768px) {
   .profile-header {

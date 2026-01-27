@@ -273,7 +273,65 @@ html {
   opacity: 0.75;
 }
 
+.post-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
 
+.like-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.rank-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.rank-badge.Beginner {
+  color: #ffffff;
+  border: 1px solid #ffffff44;
+}
+
+.rank-badge.Intermediate {
+  color: #4caf50;
+  border: 1px solid #4caf50;
+}
+
+.rank-badge.Advanced {
+  color: #2196f3;
+  border: 1px solid #2196f3;
+}
+
+.rank-badge.Professional {
+  color: gold;
+  border: 1px solid gold;
+  box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+}
+
+
+.like-btn.liked {
+  color: red;
+}
+
+.report-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #999;
+}
+
+.report-btn:hover {
+  color: crimson;
+}
 .right-sidebar {
   width: 300px;
   background: linear-gradient(180deg, #151515 0%, #0a0a0a 100%);

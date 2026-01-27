@@ -49,11 +49,14 @@ function Profile() {
   };
 
   const getRidingLevel = (points = 0, role = "user") => {
-    if (role === "admin") return "ADMIN";
     if (points >= 100) return "Professional";
     if (points >= 50) return "Advanced";
     if (points >= 20) return "Intermediate";
     return "Beginner";
+  };
+
+   const getRidingAdmin = (role = "admin") => {
+    return "ADMIN";
   };
 
   
@@ -224,9 +227,12 @@ function Profile() {
             <span className={`profile-level ${isBanned ? "role-banned" : ""}`}>
               {isBanned
                 ? "BANNED"
-                : getRidingLevel(profile.points, profile.role)}
+                : (
+                    <>
+                      {getRidingLevel(profile.points, profile.role)} {profile.role === 'admin' && `| ${getRidingAdmin(profile.role)}`}
+                    </>
+                  )}
             </span>
-
             <p>Points: {profile.points}</p>
             <p>Rating: {profile.rating ?? "N/A"} / 5</p>
             <p>Leaderboard Position: #{profile.position ?? "—"}</p>

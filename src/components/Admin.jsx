@@ -268,7 +268,10 @@ export default function AdminDashboard() {
             </thead>
             <tbody>
               {posts.map(p => (
-                <tr key={p.id}>
+                <tr
+                  key={p.id}
+                  className={p.has_ticket ? "ticketed-post" : ""}
+                >
                   <td>{p.title}</td>
                   <td>{p.author_name}</td>
                   <td>{p.level}</td>
